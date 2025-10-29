@@ -7,4 +7,8 @@
     <Project Path="BuildingBlocks/BuildingBlocks.MediatR/BuildingBlocks.MediatR.csproj" />
     <Project Path="BuildingBlocks/BuildingBlocks.Messaging.RabbitMQ/BuildingBlocks.Messaging.RabbitMQ.csproj" />
   </Folder>
+
+  <Folder Name="/Gateway/">
+    <Project Path="Gateway/YarpApiGateway/YarpApiGateway.csproj" />
+  </Folder>
 </Solution>
