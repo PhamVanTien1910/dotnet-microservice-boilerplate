@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <RootNamespace>BuildingBlocks.Domain</RootNamespace>
+    <AssemblyName>BuildingBlocks.Domain</AssemblyName>
+    <Description>BuildingBlocks.Domain - Common abstractions and interfaces for the BuildingBlocks framework</Description>
+    <PackageTags>abstractions;interfaces;common;buildingblocks</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="13.0.0" />
+  </ItemGroup>
+
+</Project>
