@@ -1,0 +1,146 @@
+services:
+  iam-api:
+    build:
+      context: .
+      dockerfile: Services/IAM/IAM.Api/Dockerfile
+    image: boilerplate-iam-api:latest
+    container_name: boilerplate-iam-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ConnectionStrings__DefaultConnection=Host=iam-db;Database=${IAM_POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      - Redis__ConnectionString=redis:6379,password=${REDIS_PASSWORD}
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__Port=5672
+      - RabbitMQ__UserName=${RABBITMQ_USER}
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD}
+      - RabbitMQ__VirtualHost=/
+      - RabbitMQ__ExchangeName=boilerplate_events
+      - RabbitMQ__QueueName=iam_service_queue
+    ports:
+      - "5001:8080"
+    depends_on:
+      iam-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - boilerplate-network
+    volumes:
+      - ./secrets/identity:/app/secrets:ro
+    restart: unless-stopped
+
+  iam-db:
+    image: postgres:15-alpine
+    container_name: boilerplate-iam-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${IAM_POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - iam_postgres_data:/var/lib/postgresql/data
+    networks:
+      - boilerplate-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+
+  redis:
+    image: redis:7-alpine
+    container_name: boilerplate-redis
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - boilerplate-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: boilerplate-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - boilerplate-network
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Gateway/YarpApiGateway/Dockerfile
+    image: boilerplate-gateway:latest
+    container_name: boilerplate-gateway
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - Redis__ConnectionString=redis:6379,password=${REDIS_PASSWORD}
+      - ReverseProxy__Clusters__iam-cluster__Destinations__destination1__Address=http://iam-api:8080
+      - ReverseProxy__Clusters__customer-cluster__Destinations__destination1__Address=http://customer-api:8080
+      - ReverseProxy__Clusters__class-cluster__Destinations__destination1__Address=http://class-api:8080
+      - ReverseProxy__Clusters__enrolment-cluster__Destinations__destination1__Address=http://enrolment-api:8080
+      - ReverseProxy__Clusters__payment-cluster__Destinations__destination1__Address=http://payment-api:8080
+    ports:
+      - "5000:8080"  # HTTP endpoint
+    depends_on:
+      - iam-api
+      - redis
+      - minio
+    networks:
+      - boilerplate-network
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    container_name: boilerplate-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - boilerplate-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://127.0.0.1:9000/minio/health/ready" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  iam_postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+  minio-data:
+    driver: local
+
+networks:
+  boilerplate-network:
