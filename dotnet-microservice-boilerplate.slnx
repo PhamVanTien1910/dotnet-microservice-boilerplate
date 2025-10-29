@@ -11,4 +11,11 @@
   <Folder Name="/Gateway/">
     <Project Path="Gateway/YarpApiGateway/YarpApiGateway.csproj" />
   </Folder>
+
+  <Folder Name="/Services/IAM/">
+    <Project Path="Services/IAM/IAM.Api/IAM.Api.csproj" />
+    <Project Path="Services/IAM/IAM.Application/IAM.Application.csproj" />
+    <Project Path="Services/IAM/IAM.Domain/IAM.Domain.csproj" />
+    <Project Path="Services/IAM/IAM.Infrastructure/IAM.Infrastructure.csproj" />
+  </Folder>
 </Solution>
