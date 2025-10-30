@@ -18,4 +18,7 @@
     <Project Path="Services/IAM/IAM.Domain/IAM.Domain.csproj" />
     <Project Path="Services/IAM/IAM.Infrastructure/IAM.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/Services/Shared/">
+    <Project Path="Services/Shared/Shared.csproj" />
+  </Folder>
 </Solution>
