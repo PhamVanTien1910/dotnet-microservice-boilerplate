@@ -482,3 +482,16 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Security - JWT Keys and Secrets
+secrets/
+*.pem
+*.key
+*.cert
+*.p12
+*.pfx
+
+# Environment secrets
+.env.local
+.env.production
+.env.staging
