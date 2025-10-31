@@ -12,6 +12,7 @@ builder.Services
 
 // Add API services
 builder.Services.AddApiServices(builder.Configuration);
+builder.Services.AddCustomAuthorization();
 
 var app = builder.Build();
 
