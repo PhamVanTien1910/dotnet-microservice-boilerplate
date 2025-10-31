@@ -5,6 +5,7 @@ using IAM.Application.Handlers.Users.Queries.GetAllUsers;
 using IAM.Application.Handlers.Users.Queries.GetMyProfile;
 using IAM.Application.Handlers.Users.Queries.GetUserById;
 using Microsoft.AspNetCore.Authorization;
+using IAM.Application.Handlers.Users.Commands.UpdateProfile;
 
 namespace IAM.Api.Controllers
 {
@@ -42,6 +43,16 @@ namespace IAM.Api.Controllers
         {
             var query = new GetUserByIdQuery(userId);
             var response = await _mediator.Send(query);
+            return Ok(response);
+        }
+
+        [HttpPut("{userId:guid}")]
+        [Authorize]
+        public async Task<ActionResult<UserResponse>> UpdateUserProfile(
+            [FromRoute] Guid userId, [FromBody] UpdateProfileCommand command)
+        {
+            command = command with { Id = userId };
+            var response = await _mediator.Send(command);
             return Ok(response);
         }
     }

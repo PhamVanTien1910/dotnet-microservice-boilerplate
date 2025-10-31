@@ -1,6 +1,5 @@
 using System.Text.RegularExpressions;
 using FluentValidation;
-using IAM.Domain.Aggregates.Users.ValueObjects;
 
 namespace IAM.Application.Handlers.Users.Commands.Register
 {
@@ -17,7 +16,7 @@ namespace IAM.Application.Handlers.Users.Commands.Register
 
         private static readonly HashSet<string> ValidRoles = new(StringComparer.OrdinalIgnoreCase)
         {
-            "Parent", "Provider"
+            "Admin", "User"
         };
 
         public RegisterCommandValidator()
@@ -68,16 +67,12 @@ namespace IAM.Application.Handlers.Users.Commands.Register
                 .NotEmpty()
                 .WithMessage("Role is required")
                 .Must(BeValidRole)
-                .WithMessage("Role must be either 'Parent' or 'Provider'");
+                .WithMessage("Role must be either 'User' or 'Admin'");
 
             // Conditional phone number validation
             RuleFor(x => x.PhoneNumber)
                 .NotEmpty()
-                .WithMessage("Phone number is required for Parent role")
-                .When(x => x.Role == "Parent")
-                .Must(BeValidPhoneNumber)
-                .WithMessage("Phone number format is invalid")
-                .When(x => x.Role == "Parent");
+                .WithMessage("Phone number is required");
         }
 
         private static bool BeAValidPassword(string? password)
@@ -110,22 +105,6 @@ namespace IAM.Application.Handlers.Users.Commands.Register
                 return false;
 
             return ValidRoles.Contains(role);
-        }
-
-        private static bool BeValidPhoneNumber(string? phoneNumber)
-        {
-            if (string.IsNullOrEmpty(phoneNumber))
-                return false;
-
-            try
-            {
-                PhoneNumber.Create(phoneNumber);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
         }
     }
 }

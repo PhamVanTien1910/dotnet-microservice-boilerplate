@@ -40,7 +40,7 @@ namespace NotificationService.Email
                 await _retryPolicy.ExecuteAsync(async () =>
                 {
                     var msg = new MimeMessage();
-                    msg.From.Add(new MailboxAddress("E‑Learning", _smtp.FromAddress));
+                    msg.From.Add(new MailboxAddress("Boilerplate", _smtp.FromAddress));
                     msg.To.Add(MailboxAddress.Parse(to));
                     msg.Subject = subject;
                     msg.Body = new BodyBuilder { HtmlBody = html }.ToMessageBody();
