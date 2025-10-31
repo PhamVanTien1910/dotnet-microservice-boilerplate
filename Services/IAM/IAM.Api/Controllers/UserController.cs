@@ -6,6 +6,7 @@ using IAM.Application.Handlers.Users.Queries.GetMyProfile;
 using IAM.Application.Handlers.Users.Queries.GetUserById;
 using Microsoft.AspNetCore.Authorization;
 using IAM.Application.Handlers.Users.Commands.UpdateProfile;
+using IAM.Application.Handlers.Users.Commands.DeleteProfile;
 
 namespace IAM.Api.Controllers
 {
@@ -46,12 +47,20 @@ namespace IAM.Api.Controllers
             return Ok(response);
         }
 
-        [HttpPut("{userId:guid}")]
+        [HttpPut]
         [Authorize]
         public async Task<ActionResult<UserResponse>> UpdateUserProfile(
-            [FromRoute] Guid userId, [FromBody] UpdateProfileCommand command)
+            [FromBody] UpdateProfileCommand command)
         {
-            command = command with { Id = userId };
+            var response = await _mediator.Send(command);
+            return Ok(response);
+        }
+
+        [HttpDelete("{userId:guid}")]
+        [Authorize("AdminPolicy")]
+        public async Task<IActionResult> DeleteUserProfile([FromRoute] Guid userId)
+        {
+            var command = new DeleteProfileCommand(userId);
             var response = await _mediator.Send(command);
             return Ok(response);
         }
