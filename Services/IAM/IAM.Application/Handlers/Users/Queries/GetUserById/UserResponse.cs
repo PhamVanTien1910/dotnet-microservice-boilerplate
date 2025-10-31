@@ -12,9 +12,5 @@ namespace IAM.Application.Handlers.Users.Queries.GetUserById
         public DateTime? LastLoginAt { get; set; }
         public DateTime CreatedAt { get; set; }
         public bool IsDeleted { get; set; }
-
-        // Organization role information for Provider users
-        public Guid? OrganizationId { get; set; }
-        public string? OrganizationRole { get; set; }
     }
 }

@@ -8,8 +8,6 @@ namespace Shared.IntegrationEvents
         public string? FirstName { get; }
         public string? LastName { get; }
         public string Role { get; }
-        public Guid OrganizationId { get; }
-        public string OrganizationRole { get; }
         public string? PhoneNumber { get; }
         public string? AvatarUrl { get; }
         public string? State { get; }
@@ -21,8 +19,6 @@ namespace Shared.IntegrationEvents
             string? firstName,
             string? lastName,
             string role,
-            Guid organizationId,
-            string organizationRole,
             string? phoneNumber = null,
             string? avatarUrl = null,
             string? state = null,
@@ -33,8 +29,6 @@ namespace Shared.IntegrationEvents
             FirstName = firstName;
             LastName = lastName;
             Role = role;
-            OrganizationId = organizationId;
-            OrganizationRole = organizationRole;
             PhoneNumber = phoneNumber;
             AvatarUrl = avatarUrl;
             State = state;

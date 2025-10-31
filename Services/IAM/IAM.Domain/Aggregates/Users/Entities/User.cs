@@ -30,132 +30,132 @@ namespace IAM.Domain.Aggregates.Users.Entities
         }
 
         // Factory method
-    public static User Create(
-        PersonName name,
-        Email email,
-        PhoneNumber? phoneNumber,
-        PasswordHash passwordHash,
-        UserRole role)
-    {
-        var user = new User
+        public static User Create(
+            PersonName name,
+            Email email,
+            PhoneNumber? phoneNumber,
+            PasswordHash passwordHash,
+            UserRole role)
         {
-            Name = name,
-            Email = email,
-            PhoneNumber = phoneNumber,
-            PasswordHash = passwordHash,
-            Role = role,
-            IsEmailConfirmed = false,
-            CreatedAt = DateTime.UtcNow,
-        };
+            var user = new User
+            {
+                Name = name,
+                Email = email,
+                PhoneNumber = phoneNumber,
+                PasswordHash = passwordHash,
+                Role = role,
+                IsEmailConfirmed = false,
+                CreatedAt = DateTime.UtcNow,
+            };
 
-        return user;
-    }
-
-    // Credential operations
-    public void ChangePassword(PasswordHash newPasswordHash)
-    {
-        if (newPasswordHash == null)
-            throw new BadRequestException("Password hash cannot be null");
-
-        PasswordHash = newPasswordHash;
-        PasswordResetToken = null;
-    }
-
-    public void SetEmailConfirmationToken(SecurityToken token)
-    {
-        EmailConfirmationToken = token;
-    }
-
-    public void ConfirmEmail()
-    {
-        if (!IsEmailConfirmed)
-        {
-            IsEmailConfirmed = true;
-            EmailConfirmationToken = null;
+            return user;
         }
-    }
 
-    public void SetPasswordResetToken(SecurityToken token)
-    {
-        PasswordResetToken = token;
-    }
+        // Credential operations
+        public void ChangePassword(PasswordHash newPasswordHash)
+        {
+            if (newPasswordHash == null)
+                throw new BadRequestException("Password hash cannot be null");
 
-    public void CompletePasswordReset(PasswordHash newPasswordHash)
-    {
-        ChangePassword(newPasswordHash);
-        PasswordResetToken = null;
-    }
+            PasswordHash = newPasswordHash;
+            PasswordResetToken = null;
+        }
 
-    // Session operations
-    public UserSession CreateSession(string plainRefreshToken, TimeSpan lifetime)
-    {
-        if (IsDeleted)
-            throw new ForbiddenException("Account is inactive");
+        public void SetEmailConfirmationToken(SecurityToken token)
+        {
+            EmailConfirmationToken = token;
+        }
 
-        var refreshTokenHash = TokenHash.FromPlainToken(plainRefreshToken);
-        var session = UserSession.Create(Id, refreshTokenHash, lifetime);
-        _sessions.Add(session);
-        return session;
-    }
+        public void ConfirmEmail()
+        {
+            if (!IsEmailConfirmed)
+            {
+                IsEmailConfirmed = true;
+                EmailConfirmationToken = null;
+            }
+        }
 
-    public void RefreshSession(Guid sessionId, string newPlainRefreshToken, TimeSpan lifetime)
-    {
-        var session = _sessions.FirstOrDefault(s => s.Id == sessionId && s.IsActive());
-        if (session == null)
-            throw new NotFoundException("Cannot refresh an inactive or non-existent session");
+        public void SetPasswordResetToken(SecurityToken token)
+        {
+            PasswordResetToken = token;
+        }
 
-        session.Refresh(newPlainRefreshToken, lifetime);
-    }
+        public void CompletePasswordReset(PasswordHash newPasswordHash)
+        {
+            ChangePassword(newPasswordHash);
+            PasswordResetToken = null;
+        }
 
-    public void RevokeSession(Guid sessionId)
-    {
-        var session = _sessions.FirstOrDefault(s => s.Id == sessionId);
-        if (session != null)
-            session.Revoke();
-    }
+        // Session operations
+        public UserSession CreateSession(string plainRefreshToken, TimeSpan lifetime)
+        {
+            if (IsDeleted)
+                throw new ForbiddenException("Account is inactive");
 
-    // Login tracking
-    public void RecordLogin()
-    {
-        if (IsDeleted)
-            throw new ForbiddenException("Account is inactive");
+            var refreshTokenHash = TokenHash.FromPlainToken(plainRefreshToken);
+            var session = UserSession.Create(Id, refreshTokenHash, lifetime);
+            _sessions.Add(session);
+            return session;
+        }
 
-        LastLoginAt = DateTime.UtcNow;
-    }
+        public void RefreshSession(Guid sessionId, string newPlainRefreshToken, TimeSpan lifetime)
+        {
+            var session = _sessions.FirstOrDefault(s => s.Id == sessionId && s.IsActive());
+            if (session == null)
+                throw new NotFoundException("Cannot refresh an inactive or non-existent session");
 
-    // Profile management
-    public void UpdateProfile(PersonName? name, PhoneNumber? phoneNumber, string? avatarUrl)
-    {
-        if (IsDeleted)
-            throw new ForbiddenException("Account is inactive");
+            session.Refresh(newPlainRefreshToken, lifetime);
+        }
 
-        if (name != null && !Name.Equals(name))
-            Name = name;
+        public void RevokeSession(Guid sessionId)
+        {
+            var session = _sessions.FirstOrDefault(s => s.Id == sessionId);
+            if (session != null)
+                session.Revoke();
+        }
 
-        if (!Equals(PhoneNumber, phoneNumber))
-            PhoneNumber = phoneNumber;
+        // Login tracking
+        public void RecordLogin()
+        {
+            if (IsDeleted)
+                throw new ForbiddenException("Account is inactive");
 
-        if (AvatarUrl != avatarUrl)
-            AvatarUrl = avatarUrl;
-    }
+            LastLoginAt = DateTime.UtcNow;
+        }
 
-    // Account management
-    public void Inactivate()
-    {
-        if (IsDeleted)
-            throw new BadRequestException("Account is already inactive");
+        // Profile management
+        public void UpdateProfile(PersonName? name, PhoneNumber? phoneNumber, string? avatarUrl)
+        {
+            if (IsDeleted)
+                throw new ForbiddenException("Account is inactive");
 
-        IsDeleted = true;
-        DeletedAt = DateTime.UtcNow;
-    }
+            if (name != null && !Name.Equals(name))
+                Name = name;
 
-    public void Activate()
-    {
-        if (!IsDeleted)
-            throw new BadRequestException("Account is already active");
+            if (!Equals(PhoneNumber, phoneNumber))
+                PhoneNumber = phoneNumber;
 
-        IsDeleted = false;
-        DeletedAt = null;
-    }
+            if (AvatarUrl != avatarUrl)
+                AvatarUrl = avatarUrl;
+        }
+
+        // Account management
+        public void Inactivate()
+        {
+            if (IsDeleted)
+                throw new BadRequestException("Account is already inactive");
+
+            IsDeleted = true;
+            DeletedAt = DateTime.UtcNow;
+        }
+
+        public void Activate()
+        {
+            if (!IsDeleted)
+                throw new BadRequestException("Account is already active");
+
+            IsDeleted = false;
+            DeletedAt = null;
+        }
     }
 }

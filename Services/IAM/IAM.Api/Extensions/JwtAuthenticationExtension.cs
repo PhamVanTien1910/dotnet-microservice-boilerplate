@@ -103,7 +103,7 @@ public static class JwtAuthenticationExtensionExtension
         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
         context.Response.ContentType = "application/problem+json";
         
-        var jsonResponse = System.Text.Json.JsonSerializer.Serialize(problemDetails, new JsonSerializerOptions
+        var jsonResponse = JsonSerializer.Serialize(problemDetails, new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         });
