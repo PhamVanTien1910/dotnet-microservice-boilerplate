@@ -1,12 +1,13 @@
 using BuildingBlocks.Api;
 using BuildingBlocks.Api.Middlewares;
 using ShopManagement.Api.Extensions;
+using ShopManagement.Application;
 using ShopManagement.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services
+builder.Services.AddApplicationServices()
                 .AddInfrastructure(builder.Configuration);
 builder.Services.AddProblemDetails()
                 .AddExceptionHandler<GlobalExceptionHandler>();
