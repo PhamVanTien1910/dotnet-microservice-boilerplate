@@ -14,5 +14,20 @@ namespace ShopManagement.Domain.Aggregates.Entities
         public DateTime? ModifiedAt { get; private set; }
         private readonly List<Location> _locations = new();
         public IReadOnlyCollection<Location> Locations => _locations.AsReadOnly();
+
+        private Shop()
+        {
+        }
+
+        public static Shop Create(string name, string? description, string? logoUrl)
+        {
+            return new Shop
+            {
+                Name = name,
+                Description = description,
+                LogoUrl = logoUrl,
+                CreatedAt = DateTime.UtcNow
+            };
+        }
     }
 }

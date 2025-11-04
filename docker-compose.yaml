@@ -49,6 +49,59 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
+  shop-api:
+    build:
+      context: .
+      dockerfile: Services/ShopManagementService/ShopManagement.Api/Dockerfile
+    image: boilerplate-shop-api:latest
+    container_name: boilerplate-shop-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ConnectionStrings__PostgreSql=Host=shop-db;Port=5432;Database=${SHOP_POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      - JwksSettings__JwksUri=${JWKS_URI}
+      - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY}
+      - Minio__PublicUrl=${MINIO_PUBLIC_URL}
+      - Minio__AccessKey=${MINIO_ACCESS_KEY}
+      - Minio__SecretKey=${MINIO_SECRET_KEY}
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__Port=5672
+      - RabbitMQ__UserName=${RABBITMQ_USER}
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD}
+      - RabbitMQ__VirtualHost=/
+      - RabbitMQ__ExchangeName=boilerplate_events
+      - RabbitMQ__QueueName=shop_service_queue
+    ports:
+      - "5002:8080"
+    depends_on:
+      shop-db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - boilerplate-network
+    restart: unless-stopped
+  
+  shop-db:
+    image: postgres:15-alpine
+    container_name: boilerplate-shop-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${SHOP_POSTGRES_DB}
+    ports:
+      - "5434:5432"
+    volumes:
+      - shop_postgres_data:/var/lib/postgresql/data
+    networks:
+      - boilerplate-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
  
   notification-service: 
     build:
@@ -126,10 +179,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Docker
       - Redis__ConnectionString=redis:6379,password=${REDIS_PASSWORD}
       - ReverseProxy__Clusters__iam-cluster__Destinations__destination1__Address=http://iam-api:8080
-      - ReverseProxy__Clusters__customer-cluster__Destinations__destination1__Address=http://customer-api:8080
-      - ReverseProxy__Clusters__class-cluster__Destinations__destination1__Address=http://class-api:8080
-      - ReverseProxy__Clusters__enrolment-cluster__Destinations__destination1__Address=http://enrolment-api:8080
-      - ReverseProxy__Clusters__payment-cluster__Destinations__destination1__Address=http://payment-api:8080
+      - ReverseProxy__Clusters__customer-cluster__Destinations__destination1__Address=http://shop-api:8080
     ports:
       - "5000:8080"  # HTTP endpoint
     depends_on:
@@ -162,6 +212,8 @@ services:
 
 volumes:
   iam_postgres_data:
+    driver: local
+  shop_postgres_data:
     driver: local
   redis_data:
     driver: local
