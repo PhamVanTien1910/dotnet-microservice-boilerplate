@@ -19,6 +19,13 @@
     <Project Path="Services/IAM/IAM.Infrastructure/IAM.Infrastructure.csproj" />
   </Folder>
 
+  <Folder Name="/Services/ShopManagementService/">
+    <Project Path="Services/ShopManagementService/ShopManagement.Api/ShopManagement.Api.csproj" />
+    <Project Path="Services/ShopManagementService/ShopManagement.Application/ShopManagement.Application.csproj" />
+    <Project Path="Services/ShopManagementService/ShopManagement.Domain/ShopManagement.Domain.csproj" />
+    <Project Path="Services/ShopManagementService/ShopManagement.Infrastructure/ShopManagement.Infrastructure.csproj" />
+  </Folder>
+
   <Folder Name="/Services/NotificationService/">
     <Project Path="Services/NotificationService/NotificationService.csproj" />
   </Folder>
