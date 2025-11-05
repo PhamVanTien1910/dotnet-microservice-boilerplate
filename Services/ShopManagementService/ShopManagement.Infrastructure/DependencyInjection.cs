@@ -39,6 +39,7 @@ namespace ShopManagement.Infrastructure
                     .Build();
             });
             services.AddScoped<IUploadService, MinioService>();
+            services.AddScoped<IGpsService, GpsService>();
             services.AddScoped<IShopRepository, ShopRepository>();
     
             return services;

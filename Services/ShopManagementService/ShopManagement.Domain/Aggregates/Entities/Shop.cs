@@ -1,5 +1,7 @@
 using BuildingBlocks.Domain.Abstractions;
+using BuildingBlocks.Domain.Exceptions;
 using BuildingBlocks.Domain.Model;
+using ShopManagement.Domain.Aggregates.ValueObjects;
 
 namespace ShopManagement.Domain.Aggregates.Entities
 {
@@ -28,6 +30,17 @@ namespace ShopManagement.Domain.Aggregates.Entities
                 LogoUrl = logoUrl,
                 CreatedAt = DateTime.UtcNow
             };
+        }
+
+        public Location AddLocation(string name, string? phoneNumber, string street, string city, string state, double? latitude = null, double? longitude = null)
+        {
+            var isExistedName = _locations.Any(l => l.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            if (isExistedName)
+                throw new ConflictException($"Location with name {name} already exists.");
+            var location = Location.Create(Id, name, PhoneNumber.Create(phoneNumber!),
+                Address.Create(street, city, state), GpsCoordinate.Create(latitude, longitude));
+            _locations.Add(location);
+            return location;
         }
     }
 }
