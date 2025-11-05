@@ -1,4 +1,4 @@
-namespace ClassManagement.Application.Utils;
+namespace ShopManagement.Api.Utils;
 public static class GeographyUtils
 {
     public static double HaversineDistance(double lat1, double lon1, double lat2, double lon2)
