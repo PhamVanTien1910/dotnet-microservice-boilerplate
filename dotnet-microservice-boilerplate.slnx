@@ -26,6 +26,13 @@
     <Project Path="Services/ShopManagementService/ShopManagement.Infrastructure/ShopManagement.Infrastructure.csproj" />
   </Folder>
 
+  <Folder Name="/Services/PaymentService/">
+    <Project Path="Services/PaymentService/PaymentService.Api/PaymentService.Api.csproj" />
+    <Project Path="Services/PaymentService/PaymentService.Application/PaymentService.Application.csproj" />
+    <Project Path="Services/PaymentService/PaymentService.Domain/PaymentService.Domain.csproj" />
+    <Project Path="Services/PaymentService/PaymentService.Infrastructure/PaymentService.Infrastructure.csproj" />
+  </Folder>
+
   <Folder Name="/Services/NotificationService/">
     <Project Path="Services/NotificationService/NotificationService.csproj" />
   </Folder>
