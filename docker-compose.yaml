@@ -102,6 +102,58 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
+  payment-db:
+    image: postgres:15-alpine
+    container_name: boilerplate-payment-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: payment_db
+    ports:
+      - "5436:5432"
+    volumes:
+      - payment_postgres_data:/var/lib/postgresql/data
+    networks:
+      - boilerplate-network
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER}" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  payment-api:
+    build:
+      context: .
+      dockerfile: Services/PaymentService/PaymentService.Api/Dockerfile
+    image: boilerplate-payment-api:latest
+    container_name: boilerplate-payment-api
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=payment-db;Port=5432;Database=payment_db;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      ConnectionStrings__Redis: "redis:6379,password=${REDIS_PASSWORD}"
+      ASPNETCORE_ENVIRONMENT: Docker
+      JwksSettings__JwksUri: ${JWKS_URI}
+      RabbitMQ__HostName: rabbitmq
+      RabbitMQ__Port: 5672
+      RabbitMQ__UserName: ${RABBITMQ_USER}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD}
+      RabbitMQ__VirtualHost: /
+      RabbitMQ__ExchangeName: boilerplate_events
+      RabbitMQ__QueueName: payment_service_queue
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      PaymentSettings__SuccessUrl: ${PAYMENT_SUCCESS_URL}
+      PaymentSettings__CancelUrl: ${PAYMENT_CANCEL_URL}
+    ports:
+      - "5005:8080"
+    depends_on:
+      payment-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - boilerplate-network
  
   notification-service: 
     build:
