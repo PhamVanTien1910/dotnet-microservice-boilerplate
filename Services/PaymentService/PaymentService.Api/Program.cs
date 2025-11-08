@@ -1,41 +1,57 @@
+using BuildingBlocks.Api;
+using BuildingBlocks.Api.Middlewares;
+using Microsoft.EntityFrameworkCore;
+using PaymentService.API.Extensions;
+using PaymentService.API.Middleware;
+using PaymentService.Application;
+using PaymentService.Infrastructure;
+using BuildingBlocks.Api.Extensions;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddControllers();
+builder.Services.AddApplicationServices()
+                .AddInfrastructureServices(builder.Configuration);
+builder.Services.AddProblemDetails()
+                .AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddCustomApiVersioning(builder =>
+{
+    builder.AddCustomApiVersioning();
+    builder.AddVersionedSwagger();
+});
+builder.Services.AddJwksAuthentication(builder.Configuration, options =>
+{
+    options.UserAgent = "Boilerplate-PaymentService/1.0";
+    options.RequireHttpsMetadata = true;
+    options.IncludeErrorDetails = false;
+});
+builder.Services.AddCustomAuthorization();
+
+// Add health checks
+builder.Services.AddHealthChecks()
+    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!, name: "database");
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.Services.ConfigureJwtBearerWithJwks();
+
+await app.MigrateDatabaseAsync();
+
+// Add Stripe webhook middleware FIRST to preserve raw body
+app.UseMiddleware<StripeWebhookMiddleware>();
+
+Console.WriteLine(app.Environment);
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Docker"))
 {
-    app.MapOpenApi();
+    app.UseVersionedSwaggerUI();
+}
+else
+{
+    app.UseHsts();
+    app.UseHttpsRedirection();
 }
 
-app.UseHttpsRedirection();
+app.MapHealthChecks("/health");
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
+app.UseApiPipeline();
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
